@@ -1,4 +1,3 @@
 feedparser
 requests
 firebase-admin
-dotenv[production]

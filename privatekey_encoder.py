@@ -6,8 +6,6 @@ Ce script permet d'encoder votre clé privée Firebase pour la placer dans un fi
 
 import json
 from base64 import b64encode as encoder
-import os
-from dotenv import load_dotenv, find_dotenv
 
 # Pour le mode production ou développement,
 # Merci de changer la référence pour éviter de surcharger le projet Firebase de l'appli en mode déployé

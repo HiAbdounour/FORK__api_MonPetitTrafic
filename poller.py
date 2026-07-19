@@ -11,3 +11,4 @@ PER_HOST_INTERVAL = 1.0 # temps minimum avant nouvel essai #=à changer plus tar
 #COOLDOWN_AFTER_ERRORS = 3
 #COOLDOWN_MIN = 60   
 
+FIREBASE_SERVICE_KEY = safe_import_sk()

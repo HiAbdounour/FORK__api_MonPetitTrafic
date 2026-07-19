@@ -5,7 +5,8 @@ Le fourre-tout
 """
 # IMPORTS =====
 from typing import Any
-import json
+from base64 import b64decode as decoder
+import os,json
 
 # UTILS =====
 
@@ -16,6 +17,18 @@ def format_rss_url(slug:str)-> str:
     """
     return f"https://nitter.net/{slug}/rss"
 
+def safe_import_sk()-> str:
+    """
+    Importer la clé privée du projet Firebase
+    de manière sécurisée (par .env et contrôlé par un try ... except)
+    """
+    try:
+        k_retrieve = os.getenv('ENCODED_FIREBASE_SERVICE_KEY')
+        k_retrieve  = json.dumps(k_retrieve)
+        k = decoder(k_retrieve).decode('utf-8')
+        return json.dumps(k)
+    except Exception as e:
+        raise RuntimeError("Not found or unreadable Firebase service key")
 
 # FICHIERS ===
 

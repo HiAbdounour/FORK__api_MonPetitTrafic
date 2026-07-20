@@ -4,11 +4,18 @@ Pour plus de facilité, on met toutes les fonctions annexes ici.
 Le fourre-tout
 """
 # IMPORTS =====
-from typing import Any
+from typing import Any, TypeAlias
 from base64 import b64decode as decoder
-import os,json,firebase_admin
+import feedparser, requests
+import firebase_admin
+import os,json
+import re
+from datetime import datetime
 
 # UTILS =====
+
+FormattableDate: TypeAlias = str# format attendu : "YYYY-MM-DDTHH:MM:SS.mmmZ"
+ExpectedFormat = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$")
 
 def format_rss_url(slug:str)-> str:
     """
@@ -29,8 +36,15 @@ def safe_import_sk()-> str:
         return json.dumps(k)
     except Exception as e:
         raise RuntimeError("Not found or unreadable Firebase service key")
+    
+def formatAsDate(d:str)-> FormattableDate|None:
+    try:
+        dt = datetime.strptime(d,"%Y-%m-%dT%H:%M:%S.%fZ")
+        return d # est de type FormattableDate
+    except Exception:
+        return None
 
-# FICHIERS ===
+# FICHIERS =====
 
 def import_feeds()-> Any|None:
     """
@@ -44,7 +58,7 @@ def import_feeds()-> Any|None:
         raise e
     
 
-# FIREBASE ===
+# FIREBASE =====
 
 def init_firebase(k:Any)-> firebase_admin.App:
     """
@@ -54,3 +68,31 @@ def init_firebase(k:Any)-> firebase_admin.App:
         return firebase_admin.initialize_app(firebase_admin.credentials.Certificate(k))
     except Exception as e:
         raise firebase_admin.DefaultCredentialsError("Cannot initialize a Firebase session with this private key")
+
+# FETCH (Requests to Nitter) =====
+
+def fetch_nitter(url:str,etag:str,modified:FormattableDate|str,timeout:int=20):
+    """
+    Fetche les instances de Nitter pour un compte X et renvoie le contenu obtenu après la requête
+
+    Le fetch utilise la méthode If-None-Match/If-Modified-Since afin d'éviter de spammer
+    les instances de Nitter
+    """
+    headers = {}
+
+    headers["If-None-Match"] = etag  # If-None-Match a la priorité 
+
+    modified_corrected:FormattableDate|None = formatAsDate(modified)
+    if modified_corrected is not None:
+        headers["If-Modified-Since"] = modified_corrected
+
+    try:
+        req = requests.get(url,headers=headers,timeout=timeout)
+    except Exception as e:
+        raise e
+    else:
+        if req.status_code==304:
+            return {"status": 304, "headers": req.headers, "content": None}
+        if req.status_code>=400:
+            return {"status": req.status_code, "text": req.text, "headers": req.headers, "content":None}
+        return {"status": req.status_code, "rawcontent": req.content, "headers": req.headers}

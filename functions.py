@@ -41,4 +41,4 @@ def import_feeds()-> Any|None:
             data = json.load(file)
         return data
     except Exception as e:
-        print(f"Une erreur s'est produite : {e}")
+        raise e

@@ -6,7 +6,7 @@ Le fourre-tout
 # IMPORTS =====
 from typing import Any
 from base64 import b64decode as decoder
-import os,json
+import os,json,firebase_admin
 
 # UTILS =====
 
@@ -42,3 +42,15 @@ def import_feeds()-> Any|None:
         return data
     except Exception as e:
         raise e
+    
+
+# FIREBASE ===
+
+def init_firebase(k:Any)-> firebase_admin.App:
+    """
+    Initialise une session Firebase avec la clé privée
+    """
+    try:
+        return firebase_admin.initialize_app(firebase_admin.credentials.Certificate(k))
+    except Exception as e:
+        raise firebase_admin.DefaultCredentialsError("Cannot initialize a Firebase session with this private key")

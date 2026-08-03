@@ -25,7 +25,7 @@ def format_rss_url(slug:str)-> str:
     """
     return f"https://nitter.net/{slug}/rss"
 
-def safe_import_sk()-> str:
+def safe_import_sk()-> Any:
     """
     Importer la clé privée du projet Firebase
     de manière sécurisée (par .env et contrôlé par un try ... except)
@@ -33,9 +33,10 @@ def safe_import_sk()-> str:
     try:
         load_dotenv()
         k_retrieve = os.getenv('ENCODED_FIREBASE_SERVICE_KEY')
-        k_retrieve  = json.dumps(k_retrieve)
-        k = decoder(k_retrieve).decode('utf-8')
-        return json.dumps(k)
+        if k_retrieve is None:
+            raise Exception
+        k = decoder(k_retrieve.encode('utf-8')).decode('utf-8')
+        return json.loads(k)
     except Exception as e:
         raise RuntimeError("Not found or unreadable Firebase service key")
     

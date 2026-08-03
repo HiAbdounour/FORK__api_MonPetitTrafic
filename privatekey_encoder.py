@@ -14,7 +14,9 @@ REFERENCE = "monpetittrafic-secret-key.json"
 with open(REFERENCE,'r') as file:
     k = json.load(file)
     k = json.dumps(k)
-encoded = encoder(k.encode('utf-8'))
+    kbuff = k.encode("utf-8")
+encoded_buff = encoder(kbuff)
+encoded = encoded_buff.decode('utf-8')
 
 # Copier le résultat dans le fichier .env
 # en tant que variable ENCODED_FIREBASE_SERVICE_KEY

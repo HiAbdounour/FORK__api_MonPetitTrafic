@@ -90,8 +90,9 @@ def fetch_nitter(url:str,etag:str|None=None,modified:FormattableDate|str|None=No
     """
     headers = {}
 
-    headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+    headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) MonPetitTrafic/1.0(+https://github.com/MonPetitTrafic)"
     headers["Accept"] = "application/rss+xml, application/xml, text/xml"
+    # headers["From"] ## nécessaire pour l'automatisation par GitHub Actions
 
     if etag: # If-None-Match a la priorité 
         headers["If-None-Match"] = etag

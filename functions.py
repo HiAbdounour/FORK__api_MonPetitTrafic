@@ -101,3 +101,9 @@ def fetch_nitter(url:str,etag:str,modified:FormattableDate|str,timeout:int=20):
         if req.status_code>=400:
             return {"status": req.status_code, "text": req.text, "headers": req.headers, "rawcontent":None}
         return {"status": req.status_code, "rawcontent": req.content, "headers": req.headers}
+
+def parsing():
+    """
+    === Sera utilisé pour filtrer les posts et ne conserver que les infos trafic
+    """
+    pass

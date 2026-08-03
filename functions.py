@@ -9,6 +9,7 @@ from base64 import b64decode as decoder
 import feedparser, requests
 import firebase_admin
 import os,json
+from dotenv import load_dotenv
 import re
 from datetime import datetime
 
@@ -30,6 +31,7 @@ def safe_import_sk()-> str:
     de manière sécurisée (par .env et contrôlé par un try ... except)
     """
     try:
+        load_dotenv()
         k_retrieve = os.getenv('ENCODED_FIREBASE_SERVICE_KEY')
         k_retrieve  = json.dumps(k_retrieve)
         k = decoder(k_retrieve).decode('utf-8')

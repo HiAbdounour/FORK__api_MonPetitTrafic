@@ -23,6 +23,8 @@ def format_rss_url(slug:str)-> str:
     Transforme un slug (de feeds.json) en une URL de flux RSS Nitter
     directement exploitable
     """
+    # RMQ : Nitter est uniquement exploitable par Python
+    # les autres instances sont exploitables avec JavaScript
     return f"https://nitter.net/{slug}/rss"
 
 def safe_import_sk()-> Any:
@@ -79,7 +81,7 @@ def init_firebase(k:Any)-> firebase_admin.App:
 
 # FETCH (Requests to Nitter) =====
 
-def fetch_nitter(url:str,etag:str,modified:FormattableDate|str|None=None,timeout:int=20):
+def fetch_nitter(url:str,etag:str|None=None,modified:FormattableDate|str|None=None,timeout:int=20):
     """
     Fetche les instances de Nitter pour un compte X et renvoie le contenu obtenu après la requête
 
@@ -88,7 +90,11 @@ def fetch_nitter(url:str,etag:str,modified:FormattableDate|str|None=None,timeout
     """
     headers = {}
 
-    headers["If-None-Match"] = etag  # If-None-Match a la priorité 
+    headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+    headers["Accept"] = "application/rss+xml, application/xml, text/xml"
+
+    if etag: # If-None-Match a la priorité 
+        headers["If-None-Match"] = etag
 
     if modified is not None:
         modified_corrected:FormattableDate|None = formatAsDate(modified)
@@ -104,7 +110,7 @@ def fetch_nitter(url:str,etag:str,modified:FormattableDate|str|None=None,timeout
             return {"status": 304, "headers": req.headers, "rawcontent": None}
         if req.status_code>=400:
             return {"status": req.status_code, "text": req.text, "headers": req.headers, "rawcontent":None}
-        return {"status": req.status_code, "rawcontent": req.content, "headers": req.headers}
+        return {"status": req.status_code, "text":req.text,"rawcontent": req.content, "headers": req.headers}
 
 def parsing():
     """

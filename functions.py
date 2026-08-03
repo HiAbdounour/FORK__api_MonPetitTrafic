@@ -38,6 +38,11 @@ def safe_import_sk()-> str:
         raise RuntimeError("Not found or unreadable Firebase service key")
     
 def formatAsDate(d:str)-> FormattableDate|None:
+    """
+    Vérifie qu'une chaîne de caractères d respecte bien le format attendu
+    pour les dates
+    Si ce n'est pas le cas, renvoie None
+    """
     try:
         dt = datetime.strptime(d,"%Y-%m-%dT%H:%M:%S.%fZ")
         return d # est de type FormattableDate
@@ -92,7 +97,7 @@ def fetch_nitter(url:str,etag:str,modified:FormattableDate|str,timeout:int=20):
         raise e
     else:
         if req.status_code==304:
-            return {"status": 304, "headers": req.headers, "content": None}
+            return {"status": 304, "headers": req.headers, "rawcontent": None}
         if req.status_code>=400:
-            return {"status": req.status_code, "text": req.text, "headers": req.headers, "content":None}
+            return {"status": req.status_code, "text": req.text, "headers": req.headers, "rawcontent":None}
         return {"status": req.status_code, "rawcontent": req.content, "headers": req.headers}

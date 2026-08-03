@@ -15,8 +15,15 @@ from datetime import datetime
 
 # UTILS =====
 
-FormattableDate: TypeAlias = str# format attendu : "YYYY-MM-DDTHH:MM:SS.mmmZ"
-ExpectedFormat = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$")
+FormattableDate: TypeAlias = str# format attendu : DAY, DD MON YYYY hh:mm:ss GMT
+ExpectedFormat = re.compile(r'^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), '
+    r'(0[1-9]|[12][0-9]|3[01]) '
+    r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) '
+    r'\d{4} '
+    r'([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9] '
+    r'(GMT|UTC|[A-Z]{3})$'
+) 
+print("DEBUG::WARNING ! ExpectedFormat n'a pas été testé !")#<<<DEBUG was not tested
 
 def format_rss_url(slug:str)-> str:
     """
@@ -49,7 +56,7 @@ def formatAsDate(d:str)-> FormattableDate|None:
     Si ce n'est pas le cas, renvoie None
     """
     try:
-        dt = datetime.strptime(d,"%Y-%m-%dT%H:%M:%S.%fZ")
+        dt = datetime.strptime(d,"%a, %d %b %Y %H:%M:%S GMT") #DAY, DD MON YYYY hh:mm:ss GMT
         return d # est de type FormattableDate
     except Exception:
         return None

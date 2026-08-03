@@ -79,7 +79,7 @@ def init_firebase(k:Any)-> firebase_admin.App:
 
 # FETCH (Requests to Nitter) =====
 
-def fetch_nitter(url:str,etag:str,modified:FormattableDate|str,timeout:int=20):
+def fetch_nitter(url:str,etag:str,modified:FormattableDate|str|None=None,timeout:int=20):
     """
     Fetche les instances de Nitter pour un compte X et renvoie le contenu obtenu après la requête
 
@@ -90,9 +90,10 @@ def fetch_nitter(url:str,etag:str,modified:FormattableDate|str,timeout:int=20):
 
     headers["If-None-Match"] = etag  # If-None-Match a la priorité 
 
-    modified_corrected:FormattableDate|None = formatAsDate(modified)
-    if modified_corrected is not None:
-        headers["If-Modified-Since"] = modified_corrected
+    if modified is not None:
+        modified_corrected:FormattableDate|None = formatAsDate(modified)
+        if modified_corrected is not None:
+            headers["If-Modified-Since"] = modified_corrected
 
     try:
         req = requests.get(url,headers=headers,timeout=timeout)

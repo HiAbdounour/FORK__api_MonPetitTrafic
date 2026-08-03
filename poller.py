@@ -20,9 +20,5 @@ FIREBASE_SESSION = init_firebase(FIREBASE_SERVICE_KEY)
 
 
 
-
-
-
-
 # TESTS
-print(fetch_nitter(format_rss_url("RER_A"),'jhjkjhjkjh','2012-04-23T18:25:43.511Z'))
+#print(fetch_nitter(format_rss_url("RER_A")))

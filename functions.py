@@ -4,25 +4,18 @@ Pour plus de facilité, on met toutes les fonctions annexes ici.
 Le fourre-tout
 """
 # IMPORTS =====
-from typing import Any, TypeAlias
+from typing import Any
+from custom_types import *
 from base64 import b64decode as decoder
 import feedparser, requests
 import firebase_admin
 import os,json
 from dotenv import load_dotenv
-import re
 from datetime import datetime
 
 # UTILS =====
 
-FormattableDate: TypeAlias = str# format attendu : DAY, DD MON YYYY hh:mm:ss GMT
-ExpectedFormat = re.compile(r'^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), '
-    r'(0[1-9]|[12][0-9]|3[01]) '
-    r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) '
-    r'\d{4} '
-    r'([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9] '
-    r'(GMT|UTC|[A-Z]{3})$'
-) 
+
 print("DEBUG::WARNING ! ExpectedFormat n'a pas été testé !")#<<<DEBUG was not tested
 
 def format_rss_url(slug:str)-> str:
@@ -120,8 +113,22 @@ def fetch_nitter(url:str,etag:str|None=None,modified:FormattableDate|str|None=No
             return {"status": req.status_code, "text": req.text, "headers": req.headers, "rawcontent":None}
         return {"status": req.status_code, "text":req.text,"rawcontent": req.content, "headers": req.headers}
 
-def parsing():
+def parsing(ctxt:Any)-> list[postsReady]:
     """
-    === Sera utilisé pour filtrer les posts et ne conserver que les infos trafic
+    Filtre les posts X en ne conservant que les posts intéressants
+
+    Fonctionne à partir d'un dico du type {"status": req.status_code, "text":req.text,"rawcontent": req.content, "headers": req.headers}
+    Ce qui nous intéresse, c'est "text"
+    Et renvoie une liste des posts prêts à être envoyés sur FCM (formattés en un dico)
+
+    Perso, je trouve la méthode de parsing actuellement utilisée pourrie mais on l'améliorera plus tard...
     """
-    pass
+    KEPT:list[postsReady] = []
+    try:
+        if ctxt.status_code!=200:
+            raise ValueError
+        feed = feedparser.parse(ctxt.text)
+    except Exception as e:
+        raise ValueError(f"Invalid value for ctxt. Found {ctxt}.\nRemember that parsing works only for successful fetching !")
+
+    

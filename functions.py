@@ -113,7 +113,7 @@ def fetch_nitter(url:str,etag:str|None=None,modified:FormattableDate|str|None=No
             return {"status": req.status_code, "text": req.text, "headers": req.headers, "rawcontent":None}
         return {"status": req.status_code, "text":req.text,"rawcontent": req.content, "headers": req.headers}
 
-def parsing(ctxt:Any)-> list[postsReady]:
+def parsing(ctxt:Any,line_slug:str)-> list[postsReady]:
     """
     Filtre les posts X en ne conservant que les posts intéressants
 
@@ -131,4 +131,21 @@ def parsing(ctxt:Any)-> list[postsReady]:
     except Exception as e:
         raise ValueError(f"Invalid value for ctxt. Found {ctxt}.\nRemember that parsing works only for successful fetching !")
 
+    # récupérer les posts
+    waitingPosts = feed["entries"]
     
+    # TRAITEMENT
+    for post in waitingPosts:
+        dico = {}
+        content:str = post["summary"]
+        words = content.split(" ")
+
+        # éjection des posts cultures de la RATP + travaux
+        if "[culture]" in words or "[TRAVAUX]" in words or "🚧" in words:
+            continue
+        # éjection des posts travaux (un verbe au futur)
+        if "sera" in words or "seront" in words:
+            continue
+
+
+        # 

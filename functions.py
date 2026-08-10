@@ -151,7 +151,7 @@ def parsing(ctxt:Any,line_slug:str)-> list[postsReady]:
         words = content.split(" ")
 
         # éjection des posts cultures de la RATP + travaux
-        if "[culture]" in words or "[TRAVAUX]" in words or "🚧" in words:
+        if "[culture]" in words or content.find("TRAVAUX")!=-1 or content.find("🚧")!=-1:
             continue
         # éjection des posts travaux (un verbe au futur)
         if "sera" in words or "seront" in words:
@@ -211,7 +211,7 @@ def parsing(ctxt:Any,line_slug:str)-> list[postsReady]:
         # stationnements
         ib = content.find(" stationne")
         if ib!=-1:
-            ic = [sanitize_search(words,"fin"),sanitize_search(words,'Fin')]
+            ic = [content.find("fin de"),content.find("Fin de")]
             if 0<=ic[0]<ib or 0<=ic[1]<ib: # fin de/du stationnement
                 dico["title"] = f"{line_slug} : Reprise progressive"
                 dico["body"] = content

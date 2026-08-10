@@ -21,4 +21,7 @@ FIREBASE_SESSION = init_firebase(FIREBASE_SERVICE_KEY)
 
 
 # TESTS
-print(parsing(fetch_nitter(format_rss_url("RER_A")),"RER_A"))
+print(c:=parsing(fetch_nitter(format_rss_url("RER_A")),"RER_A"))
+# maintenant, ajouter la logique des "ne pas envoyer les posts déjà envoyés"
+# +++ attention : les évolutions sont souvent des Reply à des anciens posts !
+send_notifications(c)

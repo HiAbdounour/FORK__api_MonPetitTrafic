@@ -134,9 +134,9 @@ def parsing(ctxt:Any,line_slug:str)-> list[postsReady]:
     """
     KEPT:list[postsReady] = []
     try:
-        if ctxt.status_code!=200:
+        if ctxt['status']!=200:
             raise ValueError
-        feed = feedparser.parse(ctxt.text)
+        feed = feedparser.parse(ctxt['text'])
     except Exception as e:
         raise ValueError(f"Invalid value for ctxt. Found {ctxt}.\nRemember that parsing works only for successful fetching !")
 

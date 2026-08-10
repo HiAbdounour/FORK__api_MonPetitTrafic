@@ -23,5 +23,5 @@ class postsReady(TypedDict):
     body: str
 
 # CODE MISSION
-RATP_codes = re.compile(r'\e[A-Z]{4}[0-9]{2}\e')
-SNCF_codes = re.compile(r'\e[A-Z]{4}\e')
+RATP_codes = re.compile(r' [A-Z]{4}[0-9]{2} ')
+SNCF_codes = re.compile(r' [A-Z]{4} ')

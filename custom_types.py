@@ -3,10 +3,10 @@ Séparation pour les types
 
 NE METTRE QUE DES DÉFINITIONS DE TYPES ICI, MERCI !
 """
-from typing import TypeAlias, Literal, TypedDict
+from typing import TypeAlias, Any, TypedDict
 import re
 
-# DATE au format 
+# DATE au format ?nom?
 FormattableDate: TypeAlias = str# format attendu : DAY, DD MON YYYY hh:mm:ss GMT
 ExpectedFormat = re.compile(r'^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), '
     r'(0[1-9]|[12][0-9]|3[01]) '
@@ -18,6 +18,10 @@ ExpectedFormat = re.compile(r'^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), '
 
 # DICO des posts prêts
 class postsReady(TypedDict):
-    line: str
+    line_slug: str
     title: str
     body: str
+
+# CODE MISSION
+RATP_codes = re.compile(r'\e[A-Z]{4}[0-9]{2}\e')
+SNCF_codes = re.compile(r'\e[A-Z]{4}\e')

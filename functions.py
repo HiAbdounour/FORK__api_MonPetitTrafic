@@ -4,7 +4,6 @@ Pour plus de facilité, on met toutes les fonctions annexes ici.
 Le fourre-tout
 """
 # IMPORTS =====
-from typing import Any
 from custom_types import *
 from base64 import b64decode as decoder
 import feedparser, requests
@@ -53,6 +52,16 @@ def formatAsDate(d:str)-> FormattableDate|None:
         return d # est de type FormattableDate
     except Exception:
         return None
+
+def sanitize_search(L:list,w:Any,st:int=0)-> int:
+    """
+    Renvoie la première occurence de w dans la liste L à partir de l'indice st
+    Si w n'est pas présent dans L, renvoie -1
+    """
+    try:
+        return L.index(w,st)
+    except ValueError:
+        return -1
 
 # FICHIERS =====
 
@@ -136,7 +145,8 @@ def parsing(ctxt:Any,line_slug:str)-> list[postsReady]:
     
     # TRAITEMENT
     for post in waitingPosts:
-        dico = {}
+        dico:postsReady = {}
+        dico["line_slug"] = line_slug
         content:str = post["summary"]
         words = content.split(" ")
 
@@ -148,4 +158,143 @@ def parsing(ctxt:Any,line_slug:str)-> list[postsReady]:
             continue
 
 
-        # 
+        # emojis distinctifs
+        i_emoji = content.find('⚠️')
+        if i_emoji!=-1:
+            dico["title"] = f"{line_slug} : Trafic perturbé"
+            dico["body"] = content
+            KEPT.append(dico)
+            continue
+        i_emoji = [content.find('❌'),content.find('🔴'),content.find('⛔')]
+        if set(i_emoji)!={-1}:
+            dico["title"] = f"{line_slug} : Trafic interrompu"
+            dico["body"] = content
+            KEPT.append(dico)
+            continue
+        i_emoji = content.find('✅')
+        if i_emoji!=-1:
+            dico["title"] = f"{line_slug} : Reprise progressive"
+            dico["body"] = content
+            KEPT.append(dico)
+            continue
+
+        # images distinctives (à implémenter plus tard et si possible)
+
+        # phrases type "(le) trafic (est) ..."
+        i_trafic = sanitize_search(words,"trafic")
+        if i_trafic==-1:
+            i_trafic = sanitize_search(words,"Trafic")
+        if i_trafic != -1:
+
+            # ... perturbé
+            ib = sanitize_search(words,"perturbé",i_trafic)
+            if ib!=-1 and ib-i_trafic<=2:
+                dico["title"] = f"{line_slug} : Trafic perturbé"
+                dico["body"] = content
+                KEPT.append(dico)
+                continue
+            ib = sanitize_search(words,"ralenti",i_trafic)
+            if ib!=-1 and ib-i_trafic<=3:
+                dico["title"] = f"{line_slug} : Trafic perturbé"
+                dico["body"] = content
+                KEPT.append(dico)
+                continue
+
+            # ... interrompu
+            ib = sanitize_search(words,"interrompu",i_trafic)
+            if ib!=-1 and ib-i_trafic<=2:
+                dico["title"] = f"{line_slug} : Trafic interrompu"
+                dico["body"] = content
+                KEPT.append(dico)
+                continue        
+
+        # stationnements
+        ib = content.find(" stationne")
+        if ib!=-1:
+            ic = [sanitize_search(words,"fin"),sanitize_search(words,'Fin')]
+            if 0<=ic[0]<ib or 0<=ic[1]<ib: # fin de/du stationnement
+                dico["title"] = f"{line_slug} : Reprise progressive"
+                dico["body"] = content
+                KEPT.append(dico)
+                continue
+            else:
+                dico["title"] = f"{line_slug} : Stationnement(s)"
+                dico["body"] = content
+                KEPT.append(dico)
+                continue
+
+        # reprise du trafic
+        ibx = [content.find("in d'incident"),content.find("ncident terminé"),content.find("etour à la normale")]
+        if set(ibx)!={-1}:
+            dico["title"] = f"{line_slug} : Reprise progressive"
+            dico["body"] = content
+            KEPT.append(dico)
+            continue
+        ib = content.find("e trafic reprend mais reste")
+        if ib!=-1:
+            dico["title"] = f"{line_slug} : Reprise progressive"
+            dico["body"] = content
+            KEPT.append(dico)
+            continue
+
+        # phrase clé SNCF : retards, modifications de desserte et suppressions à prévoir
+        ibx = [content.find("retard"),content.find('desserte'),content.find("suppression")]
+        if ibx[0]<ibx[1]<ibx[2] and ibx[0]!=-1:
+            dico["title"] = f"{line_slug} : Trafic perturbé"
+            dico["body"] = content
+            KEPT.append(dico)
+            continue
+
+        # retards
+        ib = content.find("retardé")
+        if content.find("train")!=-1 or content.find("rame")!=-1:
+            dico["title"] = f"{line_slug} : Trafic perturbé"
+            dico["body"] = content
+            KEPT.append(dico)
+            continue
+
+        # arrêts non desservis
+        ib = content.find("non desservi")
+        if ib!=-1:
+            dico["title"] = f"{line_slug} : Trafic perturbé"
+            dico["body"] = content
+            KEPT.append(dico)
+            continue
+
+        ### normalement, tous les posts intéréssants ont été traités à ce stade
+        ### on récupère à partir de maintenant tous les posts intéressants qui seraient mal formattés
+
+        # train spécifique concerné
+        ib = sanitize_search(words,"départ") #départ - arrivée
+        ic = sanitize_search(words,"arrivée")
+        if ib<ic and ib!=-1:
+            dico["title"] = f"{line_slug} : Course(s) impactée(s)"
+            dico["body"] = content
+            KEPT.append(dico)
+            continue
+        ibx = [re.search(RATP_codes,content),re.search(SNCF_codes,content)]
+        if ibx!=[None,None]:
+            dico["title"] = f"{line_slug} : Course(s) impactée(s)"
+            dico["body"] = content
+            KEPT.append(dico)
+            continue
+        
+        # causes possibles
+        ibx = [
+            content.find("bus de remplacement"),
+            content.find("panne de"),content.find("panne d'un"),
+            content.find("Motif :"),content.find("Motif:"),
+            content.find('Message automatique'), # propre à la SNCF en dehors des sessions
+            content.find("ndisponibilité du personnel"),
+            content.find("en répercussion d"),content.find('en raison d'),
+            content.find('❗')
+        ]
+        if set(ibx)!={-1}:
+            dico["title"] = f"{line_slug} : Problème détecté"
+            dico["body"] = content
+            KEPT.append(dico)
+            continue
+
+        # arrivé à ce stade, le post est considéré comme inintéressant et inutile !
+
+    return KEPT

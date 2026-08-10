@@ -8,6 +8,7 @@ from custom_types import *
 from base64 import b64decode as decoder
 import feedparser, requests
 import firebase_admin
+from firebase_admin import messaging
 import os,json
 from dotenv import load_dotenv
 from datetime import datetime
@@ -87,6 +88,23 @@ def init_firebase(k:Any)-> firebase_admin.App:
         return firebase_admin.initialize_app(firebase_admin.credentials.Certificate(k))
     except Exception as e:
         raise firebase_admin.DefaultCredentialsError("Cannot initialize a Firebase session with this private key")
+
+def send_notifications(pr:list[postsReady]):
+    """
+    Envoie les posts prêts à Firebase pour lancer les notifications
+    """
+    msg_list = [
+        messaging.Message(
+            notification=messaging.Notification(elem['title'],elem['body']),
+            android=messaging.AndroidConfig(priority='normal'),
+            apns=messaging.APNSConfig(headers={"apns-priority":"5"}),
+            topic=elem['line_slug'],
+        )
+        for elem in pr
+    ]
+    response = messaging.send_each(msg_list)
+    print(f"{response.success_count}/{response.success_count+response.failure_count} notifications ont bien été envoyées !")
+    return
 
 # FETCH (Requests to Nitter) =====
 
